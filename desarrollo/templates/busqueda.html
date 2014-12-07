@@ -20,25 +20,17 @@
 		<section class="Search">
 			<div class="Search-container">
 				<section id="SearchOptions"class="SearchOptions">
-					<section class="SearchOptions-type">
+					<section id="SearchOptions-type" class="SearchOptions-type">
 						<p><strong>¿Qué deseas buscar?</strong></p>
 						<div class="u-radio">  
-						    <input id="piezas" type="radio" name="search-type" value="piezas" checked="checked"/>  
-						    <label for="piezas">Piezas</label>  
-						    <input id="investigaciones" type="radio" name="search-type" value="investigaciones"/>  
-						    <label for="investigaciones">Investigaciones</label>
-						    <input id="autores" type="radio" name="search-type" value="autores"/>  
-						    <label for="autores">autores</label>  
+						    <input id="tipoPiezas" type="radio" name="searchOptions-type" value="piezas" checked="checked"/>  
+						    <label for="tipoPiezas">Piezas</label>  
+						    <input id="tipoInvestigaciones" type="radio" name="searchOptions-type" value="investigaciones"/>  
+						    <label for="tipoInvestigaciones">Investigaciones</label>
 						</div>  
 					</section>
-					<section class="SearchOptions-extras">
-						<p>Opciones de busqueda:</p>
-						<div class="u-checkbox">
-							<input id="check1" type="checkbox" name="check" value="check1" checked="checked">
-							<label for="check1">Checkbox No. 1</label>
-							<input id="check2" type="checkbox" name="check" value="check2" checked="checked">
-							<label for="check2">Checkbox No. 2</label>
-						</div>
+					<section id="SearchOptions-opciones" class="SearchOptions-opciones">
+						
 					</section>
 				</section>
 				<section class="Search-results">
@@ -63,6 +55,18 @@
 	<script id="investigacion-template" type = "text/template">
 		{% include "partials/investigacion.html" %}
 	</script>
+	<script id="opcion-template" type = "text/template">
+		{% verbatim %}
+		<p><strong>{{ nombre }}</strong></p>
+		<div class="u-checkbox">
+			{% for opcion in listado %}
+			<input id="{{ nombre }}-{{ opcion }}" type="checkbox" name="{{ nombre }}" value="{{ opcion }}" checked="checked">
+			<label for="{{ nombre }}-{{ opcion }}">{{opcion}}</label>
+			{% endfor %}
+		</div>
+		{% endverbatim %}
+	</script>
+
 	<script src="../static/js/main-search.js"></script>
 </body>
 </html>

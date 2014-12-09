@@ -29,8 +29,9 @@ module.exports = Backbone.View.extend({
     opcion.set('nombre', 'Salas');
     opcion.set('listado', ['Sala muy larga', 'Sala multiusos de los menesteres', 'restos']);
     opcion.on('change', function(){
-      console.log(this.get('coincidencias'));
-    });
+      console.log(opcion.get('coincidencias'));
+      this.busquedaAjustes.trigger("alert", opcion);
+    }, this);
     this.busquedaAjustes.get('opciones').add(opcion);
     this.busquedaAjustes.get('opciones').add({ nombre: 'Categorias', listado: ['ceramica', 'litica', 'restos'], todo: false })
     this.busquedaAjustes.get('opciones').add({ nombre: 'Colecciones', listado: ['Prehispanica', 'Zoologica', 'Archivo historico'], todo: false })

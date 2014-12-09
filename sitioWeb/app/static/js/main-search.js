@@ -3,24 +3,59 @@ var Backbone = require('backbone'),
 	$ = require('jquery'),
 	_ = require('underscore'),
 	HeaderView = require('./backbone/views/header'),
-	BusquedaView =  require('./backbone/views/busqueda'),
 	BusquedaTipoView = require('./backbone/views/busqueda-tipo'),
 	BusquedaOpcionesView = require('./backbone/views/busqueda-opciones'),
+	BusquedaSearchBoxView = require('./backbone/views/busqueda-searchbox'),
+	BusquedaResultadosView = require('./backbone/views/busqueda-resultados'),
 	BusquedaAjustes = require('./backbone/models/busqueda-ajustes'),
-	BusquedaOpciones = require('./backbone/collections/busqueda-opciones'),
+	BusquedaOpciones = require('./backbone/collections/busqueda-opciones'),	
+	Piezas = require('./backbone/collections/piezas'),
+	PiezasListView = require('./backbone/views/piezas'),
+	Investigaciones = require('./backbone/collections/investigaciones'),
+	InvestigacionesListView = require('./backbone/views/investigaciones'),
 	utilidades = require('./utilidades');
     Backbone.$ = $;
 function configuraciones() {
-	var busquedaView = new BusquedaView(),
-		busquedaAjustes = new BusquedaAjustes();
+	var busquedaAjustes = new BusquedaAjustes(),
+		piezasCollection = new Piezas(),
+		piezasList = new PiezasListView({
+      		el: $('#Search-results-content')}, piezasCollection),
+		investigacionesCollection = new Investigaciones(),
+		investigacionesList = new InvestigacionesListView({
+      		el: $('#Search-results-content')}, investigacionesCollection);
 
 	/* FUNCIONES DE LOS EVENTOS DE LAS BUSQUEDAS */
-	var cambioTipoBusqueda = function(){
-		/*console.log(busquedaAjustes.toJSON());
-		busquedaAjustes.get('opciones').reset();
-		var busquedaOpciones = new BusquedaOpcionesView({ 
-			collection: busquedaAjustes.get('opciones'),
-			busquedaAjustes: busquedaAjustes });*/
+	var iniciarBusqueda = function(){
+		if(busquedaAjustes.get('tipoBusqueda') === 'piezas'){
+			var dataPiezas = {
+		      keyword: busquedaAjustes.get('busqueda'),
+		      recurso: 'search-piezas'
+		    };
+		    piezasCollection.reset();
+		    utilidades.getJSON(dataPiezas).then(function(data){
+		     	_.each(data, function(pieza){
+		        	pieza.tipo = 'SearchPieza';
+		        	piezasCollection.add(pieza);
+		      	});
+		      	busquedaAjustes.set('totalResultados', piezasCollection.length);
+		    });
+		}
+		else if(busquedaAjustes.get('tipoBusqueda') === 'investigaciones'){
+			var dataInvestigaciones = {
+		      keyword: busquedaAjustes.get('busqueda'),
+		      recurso: 'search-investigaciones'
+		    };
+		    investigacionesCollection.reset();
+		    utilidades.getJSON(dataInvestigaciones).then(function(data){
+		     	_.each(data, function(investigacion){
+		        	investigacionesCollection.add(investigacion);
+		      	});
+		      	busquedaAjustes.set('totalResultados', investigacionesCollection.length);
+		    });
+		}
+	};
+	var cambioAjustes = function(opcion){
+		console.log(opcion.get('nombre'));
 	};
    	window.state = 'busqueda';
 	
@@ -28,11 +63,18 @@ function configuraciones() {
         cargarFuncionalidad: function(){
         	var header = new HeaderView({ config: 1 }),
         		busquedaTipo = new BusquedaTipoView(busquedaAjustes),
-        		busquedaOpciones = new BusquedaOpcionesView(busquedaAjustes);
-        	cambioTipoBusqueda();
+        		busquedaOpciones = new BusquedaOpcionesView(busquedaAjustes),
+        		busquedaSearchBox = new BusquedaSearchBoxView(busquedaAjustes),
+        		busquedaResultados = new BusquedaResultadosView(busquedaAjustes);;
+        	$('#Search-results').prepend(busquedaResultados.el);
         	busquedaAjustes.on({
-		  		"change:tipoBusqueda": cambioTipoBusqueda
+		  		"change:busqueda": iniciarBusqueda,
+		  		"change:tipoBusqueda": iniciarBusqueda,
+		  		"alert" : cambioAjustes
 		  	});
+        	if(utilidades.getParameterByName('search') != ''){
+        		busquedaSearchBox.busquedaPorParametro();
+		    }
         },
     }
 };
@@ -42,7 +84,7 @@ $(function(){
 	console.log("Start search");
 });
 
-},{"./backbone/collections/busqueda-opciones":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/collections/busqueda-opciones.js","./backbone/models/busqueda-ajustes":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/models/busqueda-ajustes.js","./backbone/views/busqueda":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda.js","./backbone/views/busqueda-opciones":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-opciones.js","./backbone/views/busqueda-tipo":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-tipo.js","./backbone/views/header":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/header.js","./utilidades":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/utilidades.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/collections/busqueda-opciones.js":[function(require,module,exports){
+},{"./backbone/collections/busqueda-opciones":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/collections/busqueda-opciones.js","./backbone/collections/investigaciones":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/collections/investigaciones.js","./backbone/collections/piezas":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/collections/piezas.js","./backbone/models/busqueda-ajustes":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/models/busqueda-ajustes.js","./backbone/views/busqueda-opciones":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-opciones.js","./backbone/views/busqueda-resultados":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-resultados.js","./backbone/views/busqueda-searchbox":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-searchbox.js","./backbone/views/busqueda-tipo":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-tipo.js","./backbone/views/header":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/header.js","./backbone/views/investigaciones":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/investigaciones.js","./backbone/views/piezas":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/piezas.js","./utilidades":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/utilidades.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/collections/busqueda-opciones.js":[function(require,module,exports){
 var Backbone = require('backbone'),
     Opcion     = require('../models/busqueda-opcion');
 
@@ -69,6 +111,8 @@ var Backbone = require('backbone'),
 
 module.exports = Backbone.Model.extend({
 	defaults: {
+		"busqueda": "",
+		"totalResultados": 0,
     	"tipoBusqueda": "piezas",
     	"opciones": new BusquedaOpciones()
   	}
@@ -92,51 +136,7 @@ module.exports = Backbone.Model.extend({});
 var Backbone = require('backbone');
 
 module.exports = Backbone.Model.extend({});
-},{"backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/SearchOptions.js":[function(require,module,exports){
-var Backbone = require('backbone'),
-    $ = require('jquery'),
-    _ = require('underscore'),
-    utilidades = require('../../utilidades');
-
-module.exports = Backbone.View.extend({
-  el: $('#SearchOptions'),
-  checkPieza: true,
-  checkInvestigacion: true,
-  events: {
-    'click #checkPieza': 'togglePieza',
-    'click #checkInvestigacion': 'toggleInvestigacion',
-  },
-  initialize: function (options) {
-    this.options = options || {};
-    if(utilidades.getParameterByName('piezas')==='false')
-      this.checkPieza = false
-    if(utilidades.getParameterByName('investigaciones')==='false')
-      this.checkInvestigacion = false
-
-    $('#checkPieza').prop('checked', this.checkPieza);
-    $('#checkInvestigacion').prop('checked', this.checkInvestigacion);  
-  },
-
-  render: function () {
-    return this;
-  },
-
-  togglePieza: function(){
-    this.checkPieza = !this.checkPieza;
-  },
-  toggleInvestigacion: function(){
-    this.checkInvestigacion = !this.checkInvestigacion;
-  },
-  getParametros: function (){
-    var data = {};
-    if(!this.checkPieza)
-      data.piezas = this.checkPieza;
-    if(!this.checkInvestigacion)
-      data.investigaciones = this.checkInvestigacion
-    return data;
-  }
-});
-},{"../../utilidades":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/utilidades.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-opcion.js":[function(require,module,exports){
+},{"backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-opcion.js":[function(require,module,exports){
 var Backbone = require('backbone'),
     $ = require('jquery'),
     _ = require('underscore'),
@@ -211,8 +211,9 @@ module.exports = Backbone.View.extend({
     opcion.set('nombre', 'Salas');
     opcion.set('listado', ['Sala muy larga', 'Sala multiusos de los menesteres', 'restos']);
     opcion.on('change', function(){
-      console.log(this.get('coincidencias'));
-    });
+      console.log(opcion.get('coincidencias'));
+      this.busquedaAjustes.trigger("alert", opcion);
+    }, this);
     this.busquedaAjustes.get('opciones').add(opcion);
     this.busquedaAjustes.get('opciones').add({ nombre: 'Categorias', listado: ['ceramica', 'litica', 'restos'], todo: false })
     this.busquedaAjustes.get('opciones').add({ nombre: 'Colecciones', listado: ['Prehispanica', 'Zoologica', 'Archivo historico'], todo: false })
@@ -230,7 +231,67 @@ module.exports = Backbone.View.extend({
     this.collection.forEach(this.addOne, this);
   }
 });
-},{"../models/busqueda-opcion":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/models/busqueda-opcion.js","./busqueda-opcion":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-opcion.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-tipo.js":[function(require,module,exports){
+},{"../models/busqueda-opcion":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/models/busqueda-opcion.js","./busqueda-opcion":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-opcion.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-resultados.js":[function(require,module,exports){
+var Backbone = require('backbone'),
+    $ = require('jquery'),
+    _ = require('underscore'),
+    swig = require('swig'),
+    utilidades = require('../../utilidades');
+
+module.exports = Backbone.View.extend({
+  tagName: 'h4',
+  className: 'u-mensajeResultados',
+
+  events: {
+  },
+  template: swig.compile("Se han encontrado {{data}} resultados"),
+  initialize: function (busquedaAjustes) {
+    this.busquedaAjustes = busquedaAjustes;
+    this.render();
+    this.listenTo(this.busquedaAjustes, "change:totalResultados", this.render, this);
+    //this.listenTo(this.model, "change", this.render, this);
+  },
+
+  render: function () {
+    var datos = {
+      data: this.busquedaAjustes.get('totalResultados')
+    }
+    this.$el.html(this.template(datos));
+    return this;
+  }
+});
+},{"../../utilidades":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/utilidades.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","swig":"/home/jescalante/Documentos/Github/Web/node_modules/swig/index.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-searchbox.js":[function(require,module,exports){
+var Backbone = require('backbone'),
+    $ = require('jquery'),
+    _ = require('underscore'),
+    utilidades = require('../../utilidades');
+
+module.exports = Backbone.View.extend({
+  el: $('#SearchBox'),
+  events: {
+    'click #SearchBox-button': 'busqueda',
+    'submit #SearchBox-form' : 'busqueda',
+  },
+  initialize: function (busquedaAjustes) {
+    this.busquedaAjustes = busquedaAjustes || {};
+  },
+
+  render: function () {
+    return this;
+  },
+  busqueda: function(event){
+    var busqueda = $('#search').val() || '';
+    this.busquedaAjustes.set('busqueda',busqueda);
+    $('#SearchBox-button').focus();
+    event.preventDefault();
+  },
+  busquedaPorParametro: function(event){
+    var busqueda = utilidades.getParameterByName('search');
+    $('#search').val(busqueda);
+    this.busquedaAjustes.set('busqueda',busqueda);
+  }
+});
+},{"../../utilidades":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/utilidades.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-tipo.js":[function(require,module,exports){
 var Backbone = require('backbone'),
     $ = require('jquery'),
     _ = require('underscore'),
@@ -259,111 +320,7 @@ module.exports = Backbone.View.extend({
     this.busquedaAjustes.set('tipoBusqueda',tipoBusqueda);
   },
 });
-},{"../../utilidades":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/utilidades.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda.js":[function(require,module,exports){
-var Backbone = require('backbone'),
-    $ = require('jquery'),
-    _ = require('underscore'),
-    swig = require('swig'),
-    utilidades = require('../../utilidades'),
-    Piezas = require('../collections/piezas'),
-    Investigaciones = require('../collections/investigaciones'),
-    PiezasListView = require('./piezas'),
-    InvestigacionesListView = require('./investigaciones'),
-    SearchOptionsView = require('./SearchOptions');
-
-module.exports = Backbone.View.extend({
-  piezasCollection: new Piezas(),
-  investigacionesCollection: new Investigaciones(),
-  searchOptions: {},
-  el: $('#content'),
-  template: swig.compile($("#content").html()),
-  events: {
-    'click #SearchBox-button': 'buttonSearch',
-    'click #Header-buttons-searchButton': 'displaySearchBox',
-    'submit #SearchBox-form' : 'submitSearch',
-  },
-  initialize: function (options) {
-    this.options = options || {};
-    var piezasList = new PiezasListView({
-      el: $('#Piezas-content')}, this.piezasCollection);
-    this.searchOptions = new SearchOptionsView();
-    investigacionesList = new InvestigacionesListView({
-                    el: $('#Investigaciones-content') 
-                }, this.investigacionesCollection);
-    if(utilidades.getParameterByName('search') != ''){
-      $('#search').val(utilidades.getParameterByName('search'));
-    }
-    this.startSearch();
-  },
-  startSearch: function (){
-    piezas = utilidades.getParameterByName('piezas');
-    investigaciones = utilidades.getParameterByName('investigaciones');
-    keyword = utilidades.getParameterByName('search');
-    if(piezas != 'false'){
-      this.getPiezas(keyword);
-    }
-    if(investigaciones != 'false'){
-      this.getInvestigaciones(keyword);
-    }
-  },
-  getPiezas: function (keyword){
-    var dataPiezas = {
-      keyword: keyword,
-      recurso: 'search-piezas'
-    };
-    this.piezasCollection.reset();
-    utilidades.getJSON(dataPiezas, this).then(function(data){
-      self = data.self;
-      _.each(data, function(pieza){
-        pieza.tipo = 'SearchPieza';
-        self.piezasCollection.add(pieza);
-      }, self);
-      self.renderResultados($("#Search-results-piezas"), self.piezasCollection.length);
-      self.renderResultados($("#Search-results-investigaciones"), self.investigacionesCollection.length); 
-    });
-  },
-  getInvestigaciones: function(keyword){
-    var dataInvestigaciones = {
-      keyword: keyword,
-      recurso: 'search-investigaciones'
-    };
-    utilidades.getJSON(dataInvestigaciones, this).then(function(data){
-      self = data.self;
-      _.each(data, function(investigacion){
-        self.investigacionesCollection.add(investigacion);
-      }, self);
-      self.renderResultados($("#Search-results-piezas"), self.piezasCollection.length);
-      self.renderResultados($("#Search-results-investigaciones"), self.investigacionesCollection.length); 
-    });
-  },
-  renderResultados: function($el, cantidad){
-    template = swig.compile($el.html());
-    resultados = {
-      data: cantidad
-    };
-    html = template(resultados);
-    $el.html(html);
-  },
-  render: function () {
-    resultados = {
-      piezas: this.piezasCollection.length,
-      investigaciones: this.investigacionesCollection.length
-    };
-    this.$el.html(this.template(resultados));
-    return this;
-  },
-  buttonSearch: function (event) {
-    this.submitSearch(event);
-  },
-  submitSearch: function(event) {
-    data = this.searchOptions.getParametros();
-    data.search = $('#search').val();
-    url = utilidades.getURL('/busqueda/', data);
-    window.location.href = url;
-    event.preventDefault();
-  }
-});
-},{"../../utilidades":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/utilidades.js","../collections/investigaciones":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/collections/investigaciones.js","../collections/piezas":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/collections/piezas.js","./SearchOptions":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/SearchOptions.js","./investigaciones":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/investigaciones.js","./piezas":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/piezas.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","swig":"/home/jescalante/Documentos/Github/Web/node_modules/swig/index.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/header.js":[function(require,module,exports){
+},{"../../utilidades":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/utilidades.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/header.js":[function(require,module,exports){
 var Backbone = require('backbone'),
     $ = require('jquery'),
     _ = require('underscore');

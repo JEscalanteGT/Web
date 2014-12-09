@@ -10,8 +10,8 @@
 <body>
 	{% include "partials/header.html" %}
 	<section id="content">
-		<section class="SearchBox">
-			<form id="SearchBox-form" action="/busqueda/" class="SearchBox-container">
+		<section id="SearchBox" class="SearchBox">
+			<form id="SearchBox-form" class="SearchBox-container">
 				<label for="search">Ingresa tu busqueda:</label>
 				<input id="search" type="search" name="search" class="u-input" placeholder="Busca piezas e investigaciones">
 				<button id="SearchBox-button" class="u-boton icon-search" type="submit"></button>
@@ -33,16 +33,8 @@
 						
 					</section>
 				</section>
-				<section class="Search-results">
-					{% verbatim %}
-					<h4 id="Search-results-piezas" class="u-mensajeResultados">Piezas ({{ data }} resultados)</h4>
-					{% endverbatim %}
-					<section id="Piezas-content" class="Search-results-piezas">
-					</section>
-					{% verbatim %}
-					<h4 id="Search-results-investigaciones" class="u-mensajeResultados">Investigaciones ({{ data }} resultados)</h4>
-					{% endverbatim %}
-					<section id="Investigaciones-content" class="Search-results-investigaciones">
+				<section id="Search-results" class="Search-results">
+					<section id="Search-results-content" class="Search-results-piezas">
 					</section>
 				</section>
 			</div>

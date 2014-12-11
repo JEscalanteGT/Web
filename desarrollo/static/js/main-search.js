@@ -17,12 +17,12 @@ var Backbone = require('backbone'),
 function configuraciones() {
 	var busquedaAjustes = new BusquedaAjustes(),
 		piezasCollection = new Piezas(),
+		piezasRespaldoCollection = new Piezas(),
 		piezasList = new PiezasListView({
       		el: $('#Search-results-content')}, piezasCollection),
 		investigacionesCollection = new Investigaciones(),
 		investigacionesList = new InvestigacionesListView({
       		el: $('#Search-results-content')}, investigacionesCollection);
-
 	/* FUNCIONES DE LOS EVENTOS DE LAS BUSQUEDAS */
 	var iniciarBusqueda = function(){
 		if(busquedaAjustes.get('tipoBusqueda') === 'piezas'){
@@ -37,6 +37,7 @@ function configuraciones() {
 		        	piezasCollection.add(pieza);
 		      	});
 		      	busquedaAjustes.set('totalResultados', piezasCollection.length);
+		      	piezasRespaldoCollection = piezasCollection.clone();
 		    });
 		}
 		else if(busquedaAjustes.get('tipoBusqueda') === 'investigaciones'){
@@ -53,6 +54,9 @@ function configuraciones() {
 		    });
 		}
 	};
+	var searchElements = function(opciones){
+		console.log(opciones);
+	};
 	var cambioAjustes = function(opcion){
 		console.log(opcion.get('nombre'));
 	};
@@ -66,11 +70,12 @@ function configuraciones() {
         		busquedaSearchBox = new BusquedaSearchBoxView(busquedaAjustes),
         		busquedaResultados = new BusquedaResultadosView(busquedaAjustes);;
         	$('#Search-results').prepend(busquedaResultados.el);
+        	debugger;
         	busquedaAjustes.on({
 		  		"change:busqueda": iniciarBusqueda,
 		  		"change:tipoBusqueda": iniciarBusqueda,
 		  		"alert" : cambioAjustes
-		  	});
+		  	}, this);
         	if(utilidades.getParameterByName('search') != ''){
         		busquedaSearchBox.busquedaPorParametro();
 		    }

@@ -1,8 +1,10 @@
 var Backbone = require('backbone'),
     $ = require('jquery'),
     _ = require('underscore'),
+    Q = require('q'),
     OpcionView = require('./busqueda-opcion'),
-    Opcion = require('../models/busqueda-opcion');
+    Opcion = require('../models/busqueda-opcion'),
+    utilidades = require('../../utilidades');
 
 module.exports = Backbone.View.extend({
   el: $('#SearchOptions-opciones'),
@@ -24,22 +26,32 @@ module.exports = Backbone.View.extend({
     if (this.busquedaAjustes.get('tipoBusqueda') === "investigaciones")
       this.cargarOpcionesInvestigaciones();
   },
+  asignarOpciones: function(resultados){
+    _.each(resultados, function(resultado){
+      var opcion = new Opcion(),
+          listado = [];
+      opcion.set('nombre', resultado.self.nombre);
+      _.each(resultado, function(valor){
+        listado.push(valor.nombre);
+      });
+      opcion.set('listado', listado);
+      opcion.on('change', function(){
+        console.log(opcion.get('coincidencias'));
+        this.busquedaAjustes.trigger("alert", opcion);
+      }, resultado.self.context);
+      resultado.self.context.busquedaAjustes.get('opciones').add(opcion);
+    });
+  },
   cargarOpcionesPiezas: function (){
-    var opcion = new Opcion();
-    opcion.set('nombre', 'Salas');
-    opcion.set('listado', ['Sala muy larga', 'Sala multiusos de los menesteres', 'restos']);
-    opcion.on('change', function(){
-      console.log(opcion.get('coincidencias'));
-      this.busquedaAjustes.trigger("alert", opcion);
-    }, this);
-    this.busquedaAjustes.get('opciones').add(opcion);
-    this.busquedaAjustes.get('opciones').add({ nombre: 'Categorias', listado: ['ceramica', 'litica', 'restos'], todo: false })
-    this.busquedaAjustes.get('opciones').add({ nombre: 'Colecciones', listado: ['Prehispanica', 'Zoologica', 'Archivo historico'], todo: false })
-    this.busquedaAjustes.get('opciones').add({ nombre: 'Fechamiento', listado: ['Siglo XXI', 'Siglo XX', 'Siglo XIX'], todo: false });
+    Q.all([
+      utilidades.getJSON({recurso: 'colecciones'}, {context: this, nombre: 'Colecciones'}), 
+      utilidades.getJSON({recurso: 'categorias'}, {context: this, nombre: 'Categorias'})
+    ]).then(this.asignarOpciones);
   },
   cargarOpcionesInvestigaciones: function(){
-    this.busquedaAjustes.get('opciones').add({ nombre: 'Autor', listado: ['Jorge Escalante', 'Eduardo Castañeda', 'Miguel Angel'], todo: false });
-    this.busquedaAjustes.get('opciones').add({ nombre: 'Editor', listado: ['ceramica', 'litica', 'restos'], todo: false })
+    Q.all([
+      utilidades.getJSON({recurso: 'voluntarios'}, {context: this, nombre: 'Voluntarios'})
+    ]).then(this.asignarOpciones);
   },
   addOne: function (opcion) {
     var opcionView = new OpcionView({ model: opcion, collection: this.collection });

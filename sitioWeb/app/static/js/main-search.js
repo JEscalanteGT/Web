@@ -18,12 +18,12 @@ var Backbone = require('backbone'),
 function configuraciones() {
 	var busquedaAjustes = new BusquedaAjustes(),
 		piezasCollection = new Piezas(),
+		piezasRespaldoCollection = new Piezas(),
 		piezasList = new PiezasListView({
       		el: $('#Search-results-content')}, piezasCollection),
 		investigacionesCollection = new Investigaciones(),
 		investigacionesList = new InvestigacionesListView({
       		el: $('#Search-results-content')}, investigacionesCollection);
-
 	/* FUNCIONES DE LOS EVENTOS DE LAS BUSQUEDAS */
 	var iniciarBusqueda = function(){
 		if(busquedaAjustes.get('tipoBusqueda') === 'piezas'){
@@ -38,6 +38,7 @@ function configuraciones() {
 		        	piezasCollection.add(pieza);
 		      	});
 		      	busquedaAjustes.set('totalResultados', piezasCollection.length);
+		      	piezasRespaldoCollection = piezasCollection.clone();
 		    });
 		}
 		else if(busquedaAjustes.get('tipoBusqueda') === 'investigaciones'){
@@ -54,6 +55,9 @@ function configuraciones() {
 		    });
 		}
 	};
+	var searchElements = function(opciones){
+		console.log(opciones);
+	};
 	var cambioAjustes = function(opcion){
 		console.log(opcion.get('nombre'));
 	};
@@ -67,11 +71,12 @@ function configuraciones() {
         		busquedaSearchBox = new BusquedaSearchBoxView(busquedaAjustes),
         		busquedaResultados = new BusquedaResultadosView(busquedaAjustes);;
         	$('#Search-results').prepend(busquedaResultados.el);
+        	debugger;
         	busquedaAjustes.on({
 		  		"change:busqueda": iniciarBusqueda,
 		  		"change:tipoBusqueda": iniciarBusqueda,
 		  		"alert" : cambioAjustes
-		  	});
+		  	}, this);
         	if(utilidades.getParameterByName('search') != ''){
         		busquedaSearchBox.busquedaPorParametro();
 		    }
@@ -183,8 +188,10 @@ module.exports = Backbone.View.extend({
 var Backbone = require('backbone'),
     $ = require('jquery'),
     _ = require('underscore'),
+    Q = require('q'),
     OpcionView = require('./busqueda-opcion'),
-    Opcion = require('../models/busqueda-opcion');
+    Opcion = require('../models/busqueda-opcion'),
+    utilidades = require('../../utilidades');
 
 module.exports = Backbone.View.extend({
   el: $('#SearchOptions-opciones'),
@@ -206,22 +213,32 @@ module.exports = Backbone.View.extend({
     if (this.busquedaAjustes.get('tipoBusqueda') === "investigaciones")
       this.cargarOpcionesInvestigaciones();
   },
+  asignarOpciones: function(resultados){
+    _.each(resultados, function(resultado){
+      var opcion = new Opcion(),
+          listado = [];
+      opcion.set('nombre', resultado.self.nombre);
+      _.each(resultado, function(valor){
+        listado.push(valor.nombre);
+      });
+      opcion.set('listado', listado);
+      opcion.on('change', function(){
+        console.log(opcion.get('coincidencias'));
+        this.busquedaAjustes.trigger("alert", opcion);
+      }, resultado.self.context);
+      resultado.self.context.busquedaAjustes.get('opciones').add(opcion);
+    });
+  },
   cargarOpcionesPiezas: function (){
-    var opcion = new Opcion();
-    opcion.set('nombre', 'Salas');
-    opcion.set('listado', ['Sala muy larga', 'Sala multiusos de los menesteres', 'restos']);
-    opcion.on('change', function(){
-      console.log(opcion.get('coincidencias'));
-      this.busquedaAjustes.trigger("alert", opcion);
-    }, this);
-    this.busquedaAjustes.get('opciones').add(opcion);
-    this.busquedaAjustes.get('opciones').add({ nombre: 'Categorias', listado: ['ceramica', 'litica', 'restos'], todo: false })
-    this.busquedaAjustes.get('opciones').add({ nombre: 'Colecciones', listado: ['Prehispanica', 'Zoologica', 'Archivo historico'], todo: false })
-    this.busquedaAjustes.get('opciones').add({ nombre: 'Fechamiento', listado: ['Siglo XXI', 'Siglo XX', 'Siglo XIX'], todo: false });
+    Q.all([
+      utilidades.getJSON({recurso: 'colecciones'}, {context: this, nombre: 'Colecciones'}), 
+      utilidades.getJSON({recurso: 'categorias'}, {context: this, nombre: 'Categorias'})
+    ]).then(this.asignarOpciones);
   },
   cargarOpcionesInvestigaciones: function(){
-    this.busquedaAjustes.get('opciones').add({ nombre: 'Autor', listado: ['Jorge Escalante', 'Eduardo Castañeda', 'Miguel Angel'], todo: false });
-    this.busquedaAjustes.get('opciones').add({ nombre: 'Editor', listado: ['ceramica', 'litica', 'restos'], todo: false })
+    Q.all([
+      utilidades.getJSON({recurso: 'voluntarios'}, {context: this, nombre: 'Voluntarios'})
+    ]).then(this.asignarOpciones);
   },
   addOne: function (opcion) {
     var opcionView = new OpcionView({ model: opcion, collection: this.collection });
@@ -231,7 +248,7 @@ module.exports = Backbone.View.extend({
     this.collection.forEach(this.addOne, this);
   }
 });
-},{"../models/busqueda-opcion":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/models/busqueda-opcion.js","./busqueda-opcion":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-opcion.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-resultados.js":[function(require,module,exports){
+},{"../../utilidades":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/utilidades.js","../models/busqueda-opcion":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/models/busqueda-opcion.js","./busqueda-opcion":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-opcion.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","q":"/home/jescalante/Documentos/Github/Web/node_modules/q/q.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-resultados.js":[function(require,module,exports){
 var Backbone = require('backbone'),
     $ = require('jquery'),
     _ = require('underscore'),

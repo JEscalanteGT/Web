@@ -35,6 +35,8 @@ def search_view(request):
         url = 'http://api.museoxela.com/web/v1/exhibicion/buscar/?keyword=%s' % keyword
     if recurso == 'colecciones':
         url = 'http://api.museoxela.com/web/v1/colecciones/'
+    if recurso == 'categorias':
+        url = 'http://api.museoxela.com/web/v1/categorias/'
     if recurso == 'coleccionCategorias':
         idColeccion = request.GET['coleccion']
         url = 'http://api.museoxela.com/web/v1/categorias/?coleccion=%s' % idColeccion

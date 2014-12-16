@@ -6,6 +6,7 @@ module.exports = Backbone.Model.extend({
 		"busqueda": "",
 		"totalResultados": 0,
     	"tipoBusqueda": "piezas",
-    	"opciones": new BusquedaOpciones()
+    	"opciones": new BusquedaOpciones(),
+    	"primeraBusqueda": true
   	}
 });

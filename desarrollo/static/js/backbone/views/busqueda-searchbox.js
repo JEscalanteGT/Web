@@ -18,7 +18,11 @@ module.exports = Backbone.View.extend({
   },
   busqueda: function(event){
     var busqueda = $('#search').val() || '';
-    this.busquedaAjustes.set('busqueda',busqueda);
+    if(this.busquedaAjustes.get('busqueda') === busqueda){
+      this.busquedaAjustes.trigger("change:busqueda");
+    }else{  
+      this.busquedaAjustes.set('busqueda',busqueda);
+    };
     $('#SearchBox-button').focus();
     event.preventDefault();
   },

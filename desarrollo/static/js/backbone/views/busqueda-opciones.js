@@ -36,7 +36,6 @@ module.exports = Backbone.View.extend({
       });
       opcion.set('listado', listado);
       opcion.on('change', function(){
-        console.log(opcion.get('coincidencias'));
         this.busquedaAjustes.trigger("alert", opcion);
       }, resultado.self.context);
       resultado.self.context.busquedaAjustes.get('opciones').add(opcion);

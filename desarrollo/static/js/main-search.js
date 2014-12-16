@@ -38,6 +38,10 @@ function configuraciones() {
 		      	});
 		      	busquedaAjustes.set('totalResultados', piezasCollection.length);
 		      	piezasRespaldoCollection = piezasCollection.clone();
+		      	if(!busquedaAjustes.get('primeraBusqueda'))
+		    		ajustarParametros('todos');
+		    	else
+		    		busquedaAjustes.set('primeraBusqueda', false);
 		    });
 		}
 		else if(busquedaAjustes.get('tipoBusqueda') === 'investigaciones'){
@@ -54,11 +58,55 @@ function configuraciones() {
 		    });
 		}
 	};
-	var searchElements = function(opciones){
-		console.log(opciones);
-	};
 	var cambioAjustes = function(opcion){
-		console.log(opcion.get('nombre'));
+		piezasCollection.reset();
+		piezasCollection.set(piezasRespaldoCollection.toArray());
+		ajustarParametros('todos');
+	};
+	var ajustarParametros = function(parametro){
+		function buscarOpcion(listado, nombre){
+			var opciones = {nombre: nombre},
+				opcion = _.find(listado, function(opcion){
+					if(opcion.nombre === this.nombre){
+						return opcion;	
+					};
+				}, opciones);
+			return opcion;
+		};
+		function aplicarFiltrado(nombre){
+			var listado = [],
+				opcion = buscarOpcion(busquedaAjustes.get('opciones').toJSON(), nombre);
+			if(!opcion.todo){
+				_.each(piezasCollection.toJSON(), function(pieza){
+					if(this.tipo === 'Colecciones'){
+						if(_.contains(this.coincidencias, pieza.coleccion))
+							listado.push(pieza);
+					}
+					else if(this.tipo === 'Categorias'){
+						if(_.contains(this.coincidencias, pieza.categoria))
+							listado.push(pieza);
+					};
+				}, {coincidencias: opcion.coincidencias, tipo: nombre});
+				piezasCollection.reset();
+				piezasCollection.set(listado);
+				busquedaAjustes.set('totalResultados', piezasCollection.length);
+			};
+		};
+		if(busquedaAjustes.get('tipoBusqueda') === 'piezas'){
+			if(parametro === 'Colecciones'){
+				aplicarFiltrado('Colecciones');
+			}
+			else if(parametro === 'Categorias'){
+				aplicarFiltrado('Categorias');
+			}
+			else{
+				ajustarParametros('Colecciones');
+				ajustarParametros('Categorias');
+			};
+		}
+		else if (busquedaAjustes.get('tipoBusqueda') === 'investigaciones'){
+			console.log('Investigaciones ajustes');
+		};
 	};
    	window.state = 'busqueda';
 	
@@ -70,7 +118,6 @@ function configuraciones() {
         		busquedaSearchBox = new BusquedaSearchBoxView(busquedaAjustes),
         		busquedaResultados = new BusquedaResultadosView(busquedaAjustes);;
         	$('#Search-results').prepend(busquedaResultados.el);
-        	debugger;
         	busquedaAjustes.on({
 		  		"change:busqueda": iniciarBusqueda,
 		  		"change:tipoBusqueda": iniciarBusqueda,

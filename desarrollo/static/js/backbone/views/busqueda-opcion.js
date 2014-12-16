@@ -23,8 +23,8 @@ module.exports = Backbone.View.extend({
   toggleCheckbox: function(event){
     if(this.model.get('todo')){
       this.model.set('coincidencias', this.model.get('listado'), {silent: true});
-      this.model.set('coincidencias', _.without(this.model.get('coincidencias'), event.currentTarget.value));
       this.model.set('todo', false, {silent: true});
+      this.model.set('coincidencias', _.without(this.model.get('coincidencias'), event.currentTarget.value));
     }else{
       if(event.currentTarget.checked){
         var coincidencias = [];

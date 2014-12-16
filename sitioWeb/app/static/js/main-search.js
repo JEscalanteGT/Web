@@ -39,6 +39,10 @@ function configuraciones() {
 		      	});
 		      	busquedaAjustes.set('totalResultados', piezasCollection.length);
 		      	piezasRespaldoCollection = piezasCollection.clone();
+		      	if(!busquedaAjustes.get('primeraBusqueda'))
+		    		ajustarParametros('todos');
+		    	else
+		    		busquedaAjustes.set('primeraBusqueda', false);
 		    });
 		}
 		else if(busquedaAjustes.get('tipoBusqueda') === 'investigaciones'){
@@ -55,11 +59,55 @@ function configuraciones() {
 		    });
 		}
 	};
-	var searchElements = function(opciones){
-		console.log(opciones);
-	};
 	var cambioAjustes = function(opcion){
-		console.log(opcion.get('nombre'));
+		piezasCollection.reset();
+		piezasCollection.set(piezasRespaldoCollection.toArray());
+		ajustarParametros('todos');
+	};
+	var ajustarParametros = function(parametro){
+		function buscarOpcion(listado, nombre){
+			var opciones = {nombre: nombre},
+				opcion = _.find(listado, function(opcion){
+					if(opcion.nombre === this.nombre){
+						return opcion;	
+					};
+				}, opciones);
+			return opcion;
+		};
+		function aplicarFiltrado(nombre){
+			var listado = [],
+				opcion = buscarOpcion(busquedaAjustes.get('opciones').toJSON(), nombre);
+			if(!opcion.todo){
+				_.each(piezasCollection.toJSON(), function(pieza){
+					if(this.tipo === 'Colecciones'){
+						if(_.contains(this.coincidencias, pieza.coleccion))
+							listado.push(pieza);
+					}
+					else if(this.tipo === 'Categorias'){
+						if(_.contains(this.coincidencias, pieza.categoria))
+							listado.push(pieza);
+					};
+				}, {coincidencias: opcion.coincidencias, tipo: nombre});
+				piezasCollection.reset();
+				piezasCollection.set(listado);
+				busquedaAjustes.set('totalResultados', piezasCollection.length);
+			};
+		};
+		if(busquedaAjustes.get('tipoBusqueda') === 'piezas'){
+			if(parametro === 'Colecciones'){
+				aplicarFiltrado('Colecciones');
+			}
+			else if(parametro === 'Categorias'){
+				aplicarFiltrado('Categorias');
+			}
+			else{
+				ajustarParametros('Colecciones');
+				ajustarParametros('Categorias');
+			};
+		}
+		else if (busquedaAjustes.get('tipoBusqueda') === 'investigaciones'){
+			console.log('Investigaciones ajustes');
+		};
 	};
    	window.state = 'busqueda';
 	
@@ -71,7 +119,6 @@ function configuraciones() {
         		busquedaSearchBox = new BusquedaSearchBoxView(busquedaAjustes),
         		busquedaResultados = new BusquedaResultadosView(busquedaAjustes);;
         	$('#Search-results').prepend(busquedaResultados.el);
-        	debugger;
         	busquedaAjustes.on({
 		  		"change:busqueda": iniciarBusqueda,
 		  		"change:tipoBusqueda": iniciarBusqueda,
@@ -119,7 +166,8 @@ module.exports = Backbone.Model.extend({
 		"busqueda": "",
 		"totalResultados": 0,
     	"tipoBusqueda": "piezas",
-    	"opciones": new BusquedaOpciones()
+    	"opciones": new BusquedaOpciones(),
+    	"primeraBusqueda": true
   	}
 });
 },{"../collections/busqueda-opciones":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/collections/busqueda-opciones.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/models/busqueda-opcion.js":[function(require,module,exports){
@@ -167,8 +215,8 @@ module.exports = Backbone.View.extend({
   toggleCheckbox: function(event){
     if(this.model.get('todo')){
       this.model.set('coincidencias', this.model.get('listado'), {silent: true});
-      this.model.set('coincidencias', _.without(this.model.get('coincidencias'), event.currentTarget.value));
       this.model.set('todo', false, {silent: true});
+      this.model.set('coincidencias', _.without(this.model.get('coincidencias'), event.currentTarget.value));
     }else{
       if(event.currentTarget.checked){
         var coincidencias = [];
@@ -223,7 +271,6 @@ module.exports = Backbone.View.extend({
       });
       opcion.set('listado', listado);
       opcion.on('change', function(){
-        console.log(opcion.get('coincidencias'));
         this.busquedaAjustes.trigger("alert", opcion);
       }, resultado.self.context);
       resultado.self.context.busquedaAjustes.get('opciones').add(opcion);
@@ -298,7 +345,11 @@ module.exports = Backbone.View.extend({
   },
   busqueda: function(event){
     var busqueda = $('#search').val() || '';
-    this.busquedaAjustes.set('busqueda',busqueda);
+    if(this.busquedaAjustes.get('busqueda') === busqueda){
+      this.busquedaAjustes.trigger("change:busqueda");
+    }else{  
+      this.busquedaAjustes.set('busqueda',busqueda);
+    };
     $('#SearchBox-button').focus();
     event.preventDefault();
   },

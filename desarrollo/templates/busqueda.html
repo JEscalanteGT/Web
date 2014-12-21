@@ -52,10 +52,20 @@
 		<p><strong>{{ nombre }}</strong></p>
 		<div class="u-checkbox">
 			{% for opcion in listado %}
-			<input id="{{ nombre }}-{{ opcion }}" type="checkbox" name="{{ nombre }}" value="{{ opcion }}" checked="checked">
-			<label for="{{ nombre }}-{{ opcion }}">{{opcion}}</label>
+				{% if loop.index <= 4 and not mostrarTodo %}
+				<input id="{{ nombre }}-{{ opcion }}" type="checkbox" name="{{ nombre }}" value="{{ opcion }}" checked="checked">
+				<label for="{{ nombre }}-{{ opcion }}">{{opcion}}</label>
+				{% elseif mostrarTodo %}
+				<input id="{{ nombre }}-{{ opcion }}" type="checkbox" name="{{ nombre }}" value="{{ opcion }}" checked="checked">
+				<label for="{{ nombre }}-{{ opcion }}">{{opcion}}</label>
+				{% endif %}
 			{% endfor %}
 		</div>
+		{% if mostrarTodo %}
+			<button>Mostrar menos</button>
+		{% else %}
+			<button>Mostrar más</button>
+		{% endif %}
 		{% endverbatim %}
 	</script>
 

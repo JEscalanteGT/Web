@@ -10,6 +10,7 @@ module.exports = Backbone.View.extend({
 
   events: {
     'click [type="checkbox"]': 'toggleCheckbox',
+    'click button' : 'toggleOpciones',
   },
   template: swig.compile($("#opcion-template").html()),
   initialize: function () {
@@ -38,5 +39,9 @@ module.exports = Backbone.View.extend({
         this.model.set('todo', true, {silent: true});
     }
 
+  },
+  toggleOpciones: function(event){
+    this.model.set('mostrarTodo', !this.model.get('mostrarTodo'));
+    this.render();
   }
 });

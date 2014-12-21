@@ -5,6 +5,7 @@ module.exports = Backbone.Model.extend({
     	"nombre": "",
     	"listado": [],
     	"coincidencias": [],
-    	"todo": true
+    	"todo": true,
+    	"mostrarTodo": false
   	}
 });

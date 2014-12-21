@@ -178,7 +178,8 @@ module.exports = Backbone.Model.extend({
     	"nombre": "",
     	"listado": [],
     	"coincidencias": [],
-    	"todo": true
+    	"todo": true,
+    	"mostrarTodo": false
   	}
 });
 },{"backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/models/investigacion.js":[function(require,module,exports){
@@ -202,6 +203,7 @@ module.exports = Backbone.View.extend({
 
   events: {
     'click [type="checkbox"]': 'toggleCheckbox',
+    'click button' : 'toggleOpciones',
   },
   template: swig.compile($("#opcion-template").html()),
   initialize: function () {
@@ -230,6 +232,10 @@ module.exports = Backbone.View.extend({
         this.model.set('todo', true, {silent: true});
     }
 
+  },
+  toggleOpciones: function(event){
+    this.model.set('mostrarTodo', !this.model.get('mostrarTodo'));
+    this.render();
   }
 });
 },{"../../utilidades":"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/utilidades.js","backbone":"/home/jescalante/Documentos/Github/Web/node_modules/backbone/backbone.js","jquery":"/home/jescalante/Documentos/Github/Web/node_modules/jquery/dist/jquery.js","swig":"/home/jescalante/Documentos/Github/Web/node_modules/swig/index.js","underscore":"/home/jescalante/Documentos/Github/Web/node_modules/underscore/underscore.js"}],"/home/jescalante/Documentos/Github/Web/desarrollo/static/js/backbone/views/busqueda-opciones.js":[function(require,module,exports){
